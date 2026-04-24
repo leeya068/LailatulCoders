@@ -19,6 +19,8 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class ProcurementController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProcurementController.class);
+
     private final ProcurementService procurementService;
     private final InventoryService inventoryService;
     private final SupplierService supplierService;
@@ -47,9 +49,7 @@ public class ProcurementController {
 
         procurementService.processRestock(product);
 
-        return "Restock triggered for product ID " + productId +
-                " | Supplier: " + supplier.getName() +
-                " | Qty: " + quantity;
+        return "Restock triggered for product ID " + productId + " | Supplier: " + supplier.getName() + " | Qty: " + quantity;
     }
 
     @Scheduled(fixedRate = 600000)
@@ -75,8 +75,6 @@ public class ProcurementController {
 
         procurementService.processRestock(product);
 
-        System.out.println("Auto-restocked product ID " + product.getId() +
-                " | Supplier: " + supplier.getName() +
-                " | Qty: " + quantity);
+        logger.info("[AUTO RESTOCK] Product: {} | Supplier: {} | Qty: {}", product.getId(), supplier.getName(), quantity);
     }
 }
