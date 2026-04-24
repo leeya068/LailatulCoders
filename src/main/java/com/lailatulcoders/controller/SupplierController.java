@@ -27,8 +27,17 @@ public class SupplierController {
 
     @PostMapping
     public String addSupplier(@RequestBody Product product,
-                                @RequestBody Supplier supplier) {
+                             @RequestParam String name,
+                             @RequestParam double price,
+                             @RequestParam int leadTime) {
+    
+        Supplier supplier = new Supplier();
+        supplier.setName(name);
+        supplier.setPrice(price);
+        supplier.setLeadTime(leadTime);
+    
         supplierService.addSupplier(product, supplier);
+    
         return "Supplier added for product " + product.getId();
     }
 
