@@ -7,6 +7,11 @@
 Built for **UMHackathon 2026**, this system demonstrates robust inventory operations with scheduled auto-restock functionality and clean RESTful API design.
 
 ---
+##Pitching video
+
+Link: https://drive.google.com/file/d/18AVboaOocta5ZjChu9gpaUxLvCfKh1yj/view?usp=sharing
+
+---
 
 ## 🚀 Features
 
