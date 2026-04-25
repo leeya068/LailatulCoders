@@ -5,10 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.lailatulcoders.model.Product;
+import com.lailatulcoders.model.ProductSupplier;
 import com.lailatulcoders.model.Supplier;
+import com.lailatulcoders.repository.ProductSupplierRepository;
 import com.lailatulcoders.service.SupplierService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,41 +24,41 @@ public class SupplierServiceImpl implements SupplierService {
     private static final Logger logger = LoggerFactory.getLogger(SupplierServiceImpl.class);
 
     // productId: list of suppliers
-    private Map<Integer, List<Supplier>> supplierDB = new HashMap<>();
+    private final ProductSupplierRepository productSupplierRepository;
 
-    // Optional: method to add suppliers (for testing/demo)
     @Override
     public void addSupplier(Product product, Supplier supplier) {
-        supplierDB.computeIfAbsent(product.getId(), k -> new ArrayList<>()).add(supplier);
-        
-        logger.info("[SUPPLIER ADDED] Product: {} | Supplier: {}", product.getId(), supplier.getName());
+        ProductSupplier ps = new ProductSupplier();
+        ps.setProduct(product);
+        ps.setSupplier(supplier);
+
+        productSupplierRepository.save(ps);
     }
 
     @Override
-    public List<Supplier> getAllSuppliers(Product product) {
-        List<Supplier> list = supplierDB.getOrDefault(product.getId(), new ArrayList<>());
+    public List<Supplier> getAllSuppliers(int productId) {
+        List<ProductSupplier> links = productSupplierRepository.findByProduct_Id(productId);
+        List<Supplier> suppliers = links.stream().map(ProductSupplier::getSupplier).toList();
     
-        logger.info("[GET SUPPLIERS] Product: {} | Count: {}", product.getId(), list.size());
+        logger.info("[GET SUPPLIERS] Product: {} | Count: {}", productId, suppliers.size());
     
-        return list;
+        return suppliers;
     }
 
     @Override
-    public Supplier getBestSupplier(Product product) {
+    public Supplier getBestSupplier(int productId) {
         try {
-            List<Supplier> suppliers = supplierDB.get(product.getId());
-    
-            if (suppliers == null || suppliers.isEmpty()) {
-                throw new RuntimeException("No suppliers found");
+            List<ProductSupplier> links = productSupplierRepository.findByProduct_Id(productId);
+            
+            if (links.isEmpty()) {
+                throw new RuntimeException("No suppliers found for " + productId);
             }
+
+            ProductSupplier best = links.stream().min((a, b) -> Double.compare(score(a), score(b))).orElseThrow();
     
-            Supplier best = suppliers.stream()
-                    .min((a, b) -> Double.compare(calculateScore(a), calculateScore(b)))
-                    .orElse(null);
+            logger.info("[BEST SUPPLIER] Product: {} | Supplier: {}", productId, best.getSupplier().getName());
     
-            logger.info("[BEST SUPPLIER] Product: {} | Supplier: {}", product.getId(), best.getName());
-    
-            return best;
+            return best.getSupplier();
     
         } catch (Exception e) {
             logger.error("[ERROR BEST SUPPLIER] {}", e.getMessage(), e);
@@ -63,10 +67,13 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     // Weightage formula
-    private double calculateScore(Supplier supplier) {
+    private double score(ProductSupplier ps) {
         double priceWeight = 0.7;
         double leadTimeWeight = 0.3;
 
-        return (supplier.getPrice() * priceWeight) + (supplier.getLeadTime() * leadTimeWeight);
+        double price = ps.getSupplierPrice();
+        double leadTime = ps.getSupplier().getLeadTime();
+
+        return (price * priceWeight) + (leadTime * leadTimeWeight);
     }
 }

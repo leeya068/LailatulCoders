@@ -42,14 +42,14 @@ public class ProcurementController {
                 return "No restock needed for product ID " + productId;
             }
 
-            List<Supplier> suppliers = supplierService.getAllSuppliers(product);
+            List<Supplier> suppliers = supplierService.getAllSuppliers(product.getId());
 
             if (suppliers == null || suppliers.isEmpty()) {
                 logger.warn("[NO SUPPLIERS] Product: {}", productId);
                 return "No suppliers available for product ID " + productId;
             }
 
-            Supplier supplier = supplierService.getBestSupplier(product);
+            Supplier supplier = supplierService.getBestSupplier(product.getId());
             int quantity = random.nextInt(50) + 10;
 
             procurementService.processRestock(product);
@@ -77,14 +77,14 @@ public class ProcurementController {
                 return;
             }
 
-            List<Supplier> suppliers = supplierService.getAllSuppliers(product);
+            List<Supplier> suppliers = supplierService.getAllSuppliers(product.getId());
 
             if (suppliers == null || suppliers.isEmpty()) {
                 logger.warn("[AUTO RESTOCK NO SUPPLIER]");
                 return;
             }
 
-            Supplier supplier = supplierService.getBestSupplier(product);
+            Supplier supplier = supplierService.getBestSupplier(product.getId());
             int quantity = random.nextInt(50) + 10;
 
             procurementService.processRestock(product);

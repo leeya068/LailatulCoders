@@ -33,7 +33,7 @@ public class ProcurementServiceImpl implements ProcurementService {
                 return;
             }
 
-            Supplier best = supplierService.getBestSupplier(product);
+            Supplier best = supplierService.getBestSupplier(product.getId());
             int quantity = 50;
 
             logger.info("[RESTOCK DECISION] Product: {} | Supplier: {} | Qty: {}", product.getId(), best.getName(), quantity);

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lailatulcoders.model.Product;
+import com.lailatulcoders.repository.ProductRepository;
 import com.lailatulcoders.service.InventoryService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class InventoryServiceImpl implements InventoryService {
 
     private static final Logger logger = LoggerFactory.getLogger(InventoryServiceImpl.class);
-    private Map<Integer, Product> productDB = new HashMap<>();
+    private final ProductRepository productRepository;
 
     @Override
     public void addStock(Product product, int quantity) {
@@ -26,9 +27,12 @@ public class InventoryServiceImpl implements InventoryService {
                 throw new RuntimeException("Product cannot be null");
             }
 
-            product.setStockLevel(product.getStockLevel() + quantity);
+            Product productDB = productRepository.findById(product.getId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
-            logger.info("[STOCK ADDED] Product: {} | Qty: {} | New Stock: {}", product.getId(), quantity, product.getStockLevel());
+            productDB.setStockLevel(productDB.getStockLevel() + quantity);
+            productRepository.save(productDB);
+
+            logger.info("[STOCK ADDED] Product: {} | Qty: {} | New Stock: {}", productDB.getId(), quantity, productDB.getStockLevel());
 
         } catch (Exception e) {
             logger.error("[ERROR ADD STOCK] {}", e.getMessage(), e);
@@ -43,13 +47,16 @@ public class InventoryServiceImpl implements InventoryService {
                 throw new RuntimeException("Product cannot be null");
             }
 
-            if (product.getStockLevel() < quantity) {
+            Product productDB = productRepository.findById(product.getId()).orElseThrow(() -> new RuntimeException("Product not found"));
+
+            if (productDB.getStockLevel() < quantity) {
                 throw new RuntimeException("Insufficient stock");
             }
 
-            product.setStockLevel(product.getStockLevel() - quantity);
+            productDB.setStockLevel(productDB.getStockLevel() - quantity);
+            productRepository.save(productDB);
 
-            logger.info("[STOCK REMOVED] Product: {} | Qty: {} | Remaining: {}", product.getId(), quantity, product.getStockLevel());
+            logger.info("[STOCK REMOVED] Product: {} | Qty: {} | Remaining: {}", productDB.getId(), quantity, productDB.getStockLevel());
 
         } catch (Exception e) {
             logger.error("[ERROR REMOVE STOCK] {}", e.getMessage(), e);
@@ -64,9 +71,11 @@ public class InventoryServiceImpl implements InventoryService {
                 throw new RuntimeException("Product cannot be null");
             }
 
-            boolean result = product.getStockLevel() <= product.getRestockThreshold();
+            Product productDB = productRepository.findById(product.getId()).orElseThrow(() -> new RuntimeException("Product not found"));
 
-            logger.info("[RESTOCK CHECK] Product: {} | Needs Restock: {}", product.getId(), result);
+            boolean result = productDB.getStockLevel() <= productDB.getRestockThreshold();
+
+            logger.info("[RESTOCK CHECK] Product: {} | Needs Restock: {}", productDB.getId(), result);
 
             return result;
 
@@ -74,17 +83,5 @@ public class InventoryServiceImpl implements InventoryService {
             logger.error("[ERROR RESTOCK CHECK] {}", e.getMessage(), e);
             throw e;
         }
-    }
-}
-        product.setStockLevel(product.getStockLevel() - quantity);
-    }
-
-    @Override
-    public boolean needsRestock(Product product) {
-        if (product == null) {
-            throw new RuntimeException("Product cannot be null");
-        }
-
-        return product.getStockLevel() <= product.getRestockThreshold();
     }
 }
